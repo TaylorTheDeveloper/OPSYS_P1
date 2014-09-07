@@ -14,8 +14,43 @@
 
 //Global Constants
 #define BUFFER_LENGTH 255
+#define MAX_TOKENS 100
+#define BUILTIN_EXIT "exit"
+#define BUILTIN_CD "cd"
+#define BUILTIN_IOACCT "ioacct"
+#define BUILTIN_USEFUL "somethinguseful"
 
 
+// Parse input
+void parseInput(char *input) {
+	const char* delims = " \n\r\f\t\v"; //Input delimiters
+	char *token, *token_array[MAX_TOKENS]; // Tokenized input
+	int inputCounter =0;
+
+    token = strtok(input, delims);
+    
+    while(token != NULL) {
+      token_array[inputCounter] = malloc(strlen(token) + 1);
+      strcpy(token_array[inputCounter++], token);
+      printf("%s token\n", token );
+      token = strtok(NULL, delims);
+    }
+}
+
+// void checkBuiltIn(char *input[]){
+// 		char *cmd = input[0];
+// 		switch(cmd){
+// 	    	case BUILTIN_CD: printf("%s\n", "cd");
+// 	    	break;
+// 	    	case BUILTIN_IOACCT: printf("%s\n", "ioacct");
+// 	    	break;
+// 	    	case BUILTIN_USEFUL:printf("%s\n", "somethinguseful");
+// 	    	break;
+// 	    	case BUILTIN_EXIT:printf("%s\n", "Exiting StallionShell v0.1");
+// 	    	exit(EXIT_SUCCESS);
+// 	    	break;
+// 	    }
+// }
 
 int main(void) {
     	//Shell Variables
@@ -36,17 +71,17 @@ int main(void) {
 	    }
 	    else{
 	    printf("ERROR: getcwd failed!\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  	}
 	  	// Grab user input, output error if NULL
 	  	// http://www.cplusplus.com/reference/cstdio/fgets/
 	    if(fgets(input, BUFFER_LENGTH, stdin) == NULL){
 	      printf("ERROR: fgets failed!\n");
-	      exit(1);
+	      exit(EXIT_FAILURE);
 	    };
-	    printf("%s\n", input);
 
 	    //Parse Input here
+	    parseInput(input);
 
 	    //Evaluate and execute input here
 	  
