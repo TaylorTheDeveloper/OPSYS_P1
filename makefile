@@ -8,4 +8,4 @@ Shell: shell.o
 
 clean:
 	rm -f *.o
-	rm -f Analyze
+	rm -f Shell
