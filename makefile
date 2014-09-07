@@ -1,10 +1,10 @@
 all: Shell
 
 Shell: shell.o
-	g++ shell.o -o Shell -Wall -pedantic
+	gcc shell.o -o Shell -Wall -pedantic
 
-%.o: %.cpp
-	g++ -c $< -o $@
+%.o: %.c
+	gcc -c $< -o $@
 
 clean:
 	rm -f *.o
