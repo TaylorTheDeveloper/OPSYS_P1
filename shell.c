@@ -15,42 +15,67 @@
 //Global Constants
 #define BUFFER_LENGTH 255
 #define MAX_TOKENS 100
-#define BUILTIN_EXIT "exit"
-#define BUILTIN_CD "cd"
-#define BUILTIN_IOACCT "ioacct"
-#define BUILTIN_USEFUL "somethinguseful"
+#define MAX_ARGS 20
 
+//Search For Program Function
 
 // Parse input
 void parseInput(char *input) {
-	const char* delims = " \n\r\f\t\v"; //Input delimiters
-	char *token, *token_array[MAX_TOKENS]; // Tokenized input
+	char *argv[MAX_ARGS];  // Account for null string to execv
+	const char* delims = " \n\r\t\v\f"; //Input delimiters
+	char *token, *arg_array[MAX_TOKENS]; // Tokenized input
 	int inputCounter =0;
+	int i;
 
     token = strtok(input, delims);
-    
     while(token != NULL) {
-      token_array[inputCounter] = malloc(strlen(token) + 1);
-      strcpy(token_array[inputCounter++], token);
-      printf("%s token\n", token );
+      arg_array[inputCounter] = malloc(strlen(token) + 1);
+      strcpy(arg_array[inputCounter++], token);
+      //printf("%s token\n", arg_array[inputCounter-1] );
       token = strtok(NULL, delims);
     }
+
+    for(i = 0; i < inputCounter; i++){
+    	//If built in
+    	//If input redirect
+    	//If output redirect
+    	//If pipe
+    	if(strcmp(arg_array[i],"exit")==0){//Built in Function
+    		printf("%s\n", "exiting StallionShell");
+    		for(i = 0; i < inputCounter; i++){
+		        free(arg_array[i]); // Clean up mem before exit
+		    }
+    		exit(EXIT_SUCCESS);
+    	}
+    	else if(strcmp(arg_array[i],"cd")==0){//Built in Function
+    		//need to store previos working directory
+    		printf("%s\n", "change directory");
+    		//If this eq ~ go home
+    		//If this eq - go to pwd
+    		if(arg_array[1]==NULL){
+    			printf("%s: nullll.\n", argv[1]);//Why does this prevent segfault?
+    		}
+    		if(chdir(arg_array[1]) != 0){
+        		printf("%s: No such file or directory.\n", arg_array[1]);
+    		}
+    	}
+    	else if(strcmp(arg_array[i],"ioacct")==0){//Built in Function
+    		printf("%s\n", "beep, beep, boop. beep");
+    	}
+    	else if(strcmp(arg_array[i],"bonus")==0){//Built in Function
+    		printf("%s\n", "useful function here");
+    	}
+    	else{//Store Commands for program executions
+    		argv[i] = malloc(strlen(arg_array[i]) + 1);
+	        strcpy(argv[i], arg_array[i]);
+	      	printf("%s stored\n", argv[i] );
+    	}
+    	
+
+    }
+
 }
 
-// void checkBuiltIn(char *input[]){
-// 		char *cmd = input[0];
-// 		switch(cmd){
-// 	    	case BUILTIN_CD: printf("%s\n", "cd");
-// 	    	break;
-// 	    	case BUILTIN_IOACCT: printf("%s\n", "ioacct");
-// 	    	break;
-// 	    	case BUILTIN_USEFUL:printf("%s\n", "somethinguseful");
-// 	    	break;
-// 	    	case BUILTIN_EXIT:printf("%s\n", "Exiting StallionShell v0.1");
-// 	    	exit(EXIT_SUCCESS);
-// 	    	break;
-// 	    }
-// }
 
 int main(void) {
     	//Shell Variables
@@ -85,6 +110,6 @@ int main(void) {
 
 	    //Evaluate and execute input here
 	  
-	}
+		}//End while loop
     return 0;
 }
