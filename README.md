@@ -17,3 +17,5 @@ http://www.cplusplus.com/reference/cstring/strtok/
 log: 
 9/7/14: 
 Basic Prompt I/O
+9/9/14:
+Exit, part of CD working now. Extended on parser. 
