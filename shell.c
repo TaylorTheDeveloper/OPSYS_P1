@@ -24,7 +24,7 @@ static char* args[512];
 
 // Parse input
 char * parseInput(char *input) {
-	char *argv[MAX_ARGS];  // Account for null string to execv
+	//char *argv[MAX_ARGS];  // Account for null string to execv
 	const char* delims = " \n\r\t\v\f"; //Input delimiters
 	char *token, *arg_array[MAX_TOKENS]; // Tokenized input
 	int inputCounter =0;
@@ -73,18 +73,44 @@ char * parseInput(char *input) {
 	     //    strcpy(argv[i], arg_array[i]);
 	     //  	printf("%s stored\n", argv[i] );
     	//}
-        argv[i] = malloc(strlen(arg_array[i]) + 1);
-            strcpy(argv[i], arg_array[i]);
+        args[i] = malloc(strlen(arg_array[i]) + 1);
+            strcpy(args[i], arg_array[i]);
     }
     
-    for(i = 0; i < inputCounter; i++){
-            printf("%s stored\n", argv[i] );
-        }
 
-        return *argv;//Returns Pointer to a Tokenized list
 
+        return *args;//Returns Pointer to a Tokenized list
 
 }
+
+//Tokenizes input, returns counter for # of arguments
+int tokenize(char *input) {
+    //char *argv[MAX_ARGS];  // Account for null string to execv
+    const char* delims = " \n\r\t\v\f"; //Input delimiters
+    char *token, *arg_array[MAX_TOKENS]; // Tokenized input
+    int inputCounter =0;
+    int i;
+
+    token = strtok(input, delims);
+    while(token != NULL) {
+      arg_array[inputCounter] = malloc(strlen(token) + 1);
+      strcpy(arg_array[inputCounter++], token);
+      //printf("%s token\n", arg_array[inputCounter-1] );
+      token = strtok(NULL, delims);
+    }
+
+    for(i = 0; i < inputCounter; i++){
+        args[i] = malloc(strlen(arg_array[i]) + 1);
+        strcpy(args[i], arg_array[i]);
+    }
+    
+    return inputCounter;//Input Counter
+}
+//Clears all the global elements
+void clearGlobals(){
+    free(args);
+}
+
 
 
 int main(void) {
@@ -94,7 +120,7 @@ int main(void) {
   	const char* userName = getenv("USER");
     const char* path = getenv("PATH");
 	const char* shellName = "StallionShell";
-    const char* hostName[BUFFER_LENGTH];
+    const char hostName[BUFFER_LENGTH];
     char input[BUFFER_LENGTH];
     //Current Work Directory
 	char cwd[BUFFER_LENGTH];
@@ -104,7 +130,7 @@ int main(void) {
     //Derp  
     char* cmd;
 
-    // hostCheck = gethostname(hostName,BUFFER_LENGTH );
+    //gethostname(hostName,sizeof hostName );
     // if(hostCheck==-1){
     //     printf("ERROR: gethostname failed!\n");
     //       exit(EXIT_FAILURE);
@@ -135,10 +161,18 @@ int main(void) {
 //Derp
         cmd = input;
 	    //Parse Input here
-	    inputTokens = parseInput(input);
+	    int tokens = tokenize(input);
+        //Print out tokens stuff
+        int i;
+            for(i = 0; i < tokens; i++){
+            printf("%s stored\n", args[i] );
+        }
+        //Parse here
 
 	    //Evaluate and execute input here
 	  
+        clearGlobals();
+        printf("%s\n", strlen(args[0]));
 		}//End while loop
     return 0;
 }
