@@ -17,12 +17,13 @@
 #define BUFFER_LENGTH 255
 #define MAX_TOKENS 100
 #define MAX_ARGS 20
-
+//Derp
+static char* args[512];
 //Search For Program Function
 
 
 // Parse input
-void parseInput(char *input) {
+char * parseInput(char *input) {
 	char *argv[MAX_ARGS];  // Account for null string to execv
 	const char* delims = " \n\r\t\v\f"; //Input delimiters
 	char *token, *arg_array[MAX_TOKENS]; // Tokenized input
@@ -42,39 +43,46 @@ void parseInput(char *input) {
     	//If input redirect
     	//If output redirect
     	//If pipe
-    	if(strcmp(arg_array[i],"exit")==0){//Built in Function
-    		printf("%s\n", "exiting StallionShell");
-    		for(i = 0; i < inputCounter; i++){
-		        free(arg_array[i]); // Clean up mem before exit
-		    }
-    		exit(EXIT_SUCCESS);
-    	}
-    	else if(strcmp(arg_array[i],"cd")==0){//Built in Function
-    		//need to store previos working directory
-    		printf("%s\n", "change directory");
-    		//If this eq ~ go home
-    		//If this eq - go to pwd
-    		if(arg_array[1]==NULL){
-    			printf("%s: nullll.\n", argv[1]);//Why does this prevent segfault?
-    		}
-    		if(chdir(arg_array[1]) != 0){
-        		printf("%s: No such file or directory.\n", arg_array[1]);
-    		}
-    	}
-    	else if(strcmp(arg_array[i],"ioacct")==0){//Built in Function
-    		printf("%s\n", "beep, beep, boop. beep");
-    	}
-    	else if(strcmp(arg_array[i],"bonus")==0){//Built in Function
-    		printf("%s\n", "useful function here");
-    	}
-    	else{//Store Commands for program executions
-    		argv[i] = malloc(strlen(arg_array[i]) + 1);
-	        strcpy(argv[i], arg_array[i]);
-	      	printf("%s stored\n", argv[i] );
-    	}
-    	
-
+    	// if(strcmp(arg_array[i],"exit")==0){//Built in Function
+    	// 	printf("%s\n", "exiting StallionShell");
+    	// 	for(i = 0; i < inputCounter; i++){
+		   //      free(arg_array[i]); // Clean up mem before exit
+		   //  }
+    	// 	exit(EXIT_SUCCESS);
+    	// }
+    	// else if(strcmp(arg_array[i],"cd")==0){//Built in Function
+    	// 	//need to store previos working directory
+    	// 	printf("%s\n", "change directory");
+    	// 	//If this eq ~ go home
+    	// 	//If this eq - go to pwd
+    	// 	if(arg_array[1]==NULL){
+    	// 		printf("%s: nullll.\n", argv[1]);//Why does this prevent segfault?
+    	// 	}
+    	// 	if(chdir(arg_array[1]) != 0){
+     //    		printf("%s: No such file or directory.\n", arg_array[1]);
+    	// 	}
+    	// }
+    	// else if(strcmp(arg_array[i],"ioacct")==0){//Built in Function
+    	// 	printf("%s\n", "beep, beep, boop. beep");
+    	// }
+    	// else if(strcmp(arg_array[i],"bonus")==0){//Built in Function
+    	// 	printf("%s\n", "useful function here");
+    	// }
+    	// else{//Store Commands for program executions
+    		// argv[i] = malloc(strlen(arg_array[i]) + 1);
+	     //    strcpy(argv[i], arg_array[i]);
+	     //  	printf("%s stored\n", argv[i] );
+    	//}
+        argv[i] = malloc(strlen(arg_array[i]) + 1);
+            strcpy(argv[i], arg_array[i]);
     }
+    
+    for(i = 0; i < inputCounter; i++){
+            printf("%s stored\n", argv[i] );
+        }
+
+        return *argv;//Returns Pointer to a Tokenized list
+
 
 }
 
@@ -82,7 +90,9 @@ void parseInput(char *input) {
 int main(void) {
     	//Shell Variables
 	bool run = true;
+    char* inputTokens;
   	const char* userName = getenv("USER");
+    const char* path = getenv("PATH");
 	const char* shellName = "StallionShell";
     const char* hostName[BUFFER_LENGTH];
     char input[BUFFER_LENGTH];
@@ -90,24 +100,28 @@ int main(void) {
 	char cwd[BUFFER_LENGTH];
     //Prior Work Directory
     char *pwd[BUFFER_LENGTH];
-    int hostCheck;
+    int hostCheck;  
+    //Derp  
+    char* cmd;
 
-    hostCheck = gethostname(hostName,sizeof hostName);
-    if(hostCheck==-1){
-        printf("ERROR: gethostname failed!\n");
-          exit(EXIT_FAILURE);
-    }
+    // hostCheck = gethostname(hostName,BUFFER_LENGTH );
+    // if(hostCheck==-1){
+    //     printf("ERROR: gethostname failed!\n");
+    //       exit(EXIT_FAILURE);
+    // }
 
+    getcwd(cwd, BUFFER_LENGTH); 
+    *pwd = cwd;//Past Working Directory is the the current one right now
+        
 	  // Run Shell
 	  while(run){
 	  	// Update current directory, output error if NULL
 	    getcwd(cwd, BUFFER_LENGTH); 
 	    if (cwd != NULL) {
 	    // Print prompt if getcwd is successful
-	    printf("%s-%s@%s:%s $  ", userName, shellName, *hostName, cwd);
+	    printf("%s@%s:%s $  ", userName, shellName, cwd);
 
-        *pwd = cwd;//Past Working Directory is the the current one right now
-	    }
+        }
 	    else{
 	    printf("ERROR: getcwd failed!\n");
 	    exit(EXIT_FAILURE);
@@ -118,9 +132,10 @@ int main(void) {
 	      printf("ERROR: fgets failed!\n");
 	      exit(EXIT_FAILURE);
 	    };
-
+//Derp
+        cmd = input;
 	    //Parse Input here
-	    parseInput(input);
+	    inputTokens = parseInput(input);
 
 	    //Evaluate and execute input here
 	  
