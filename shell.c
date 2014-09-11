@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+ #include <unistd.h>
 
 //Global Constants
 #define BUFFER_LENGTH 255
@@ -18,6 +19,7 @@
 #define MAX_ARGS 20
 
 //Search For Program Function
+
 
 // Parse input
 void parseInput(char *input) {
@@ -82,8 +84,19 @@ int main(void) {
 	bool run = true;
   	const char* userName = getenv("USER");
 	const char* shellName = "StallionShell";
+    const char* hostName[BUFFER_LENGTH];
+    char input[BUFFER_LENGTH];
+    //Current Work Directory
 	char cwd[BUFFER_LENGTH];
-	char input[BUFFER_LENGTH];
+    //Prior Work Directory
+    char *pwd[BUFFER_LENGTH];
+    int hostCheck;
+
+    hostCheck = gethostname(hostName,sizeof hostName);
+    if(hostCheck==-1){
+        printf("ERROR: gethostname failed!\n");
+          exit(EXIT_FAILURE);
+    }
 
 	  // Run Shell
 	  while(run){
@@ -91,8 +104,9 @@ int main(void) {
 	    getcwd(cwd, BUFFER_LENGTH); 
 	    if (cwd != NULL) {
 	    // Print prompt if getcwd is successful
-	    printf("%s@%s:%s $  ", userName, shellName, cwd);
-	    
+	    printf("%s-%s@%s:%s $  ", userName, shellName, *hostName, cwd);
+
+        *pwd = cwd;//Past Working Directory is the the current one right now
 	    }
 	    else{
 	    printf("ERROR: getcwd failed!\n");
