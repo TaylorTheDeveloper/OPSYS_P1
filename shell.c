@@ -108,10 +108,41 @@ int tokenize(char *input) {
 }
 //Clears all the global elements
 void clearGlobals(){
-    free(args);
+   //free(args);
+    
 }
 
+void processCommands(int tokencount)
+{
+	char * temp = getenv("PATH");  
+    printf("The path goes %s", temp);
+    int pathcount = 0;
+    char * patharray[512];
+    char * tpath;
+    const char * delim = ":";
+    tpath = strtok(temp, delim);
+    while(tpath != NULL)
+    {
+        patharray[pathcount] = malloc(strlen(tpath)+1);
+        strcpy(patharray[pathcount++], tpath);
+        printf("%s\n", patharray[pathcount-1] );
+        tpath = strtok(NULL, delim);
 
+    }
+	/*temp = strtok("PATH", ':');
+	path = strtok("PATH", NULL);
+	char * command;
+	command = '/' + arg[0];	
+	bool found = false;
+	int temp = 0;
+	while(!found && temp < tokencount)
+	{
+		
+		//if(execv(path,arg) ==0)
+			found = true;
+	}*/
+	//ultimate goal of finding the absolute path of the command and then running exec
+}
 
 int main(void) {
     	//Shell Variables
@@ -129,7 +160,6 @@ int main(void) {
     int hostCheck;  
     //Derp  
     char* cmd;
-
     //gethostname(hostName,sizeof hostName );
     // if(hostCheck==-1){
     //     printf("ERROR: gethostname failed!\n");
@@ -171,8 +201,9 @@ int main(void) {
 
 	    //Evaluate and execute input here
 	  
+    processCommands(3); //DERP
         clearGlobals();
-        printf("%s\n", strlen(args[0]));
+       // printf("%s\n", strlen(args[0]));
 		}//End while loop
     return 0;
 }
