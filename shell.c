@@ -7,11 +7,13 @@
  * Stallion Shell
  */
 
- #include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
- #include <unistd.h>
+#include <unistd.h>
+#include <sys/types.h>
+
 
 //Global Constants
 #define BUFFER_LENGTH 255
@@ -20,51 +22,8 @@
 //Derp
 static char* args[MAX_ARGS];
 static int argSize;
+pid_t pid;
 //Search For Program Function
-
-
-// Parse input
-void parseInput() {
-	int inputCounter =0;
-	int i;
-
-    for(i = 0; i < inputCounter; i++){
-    	//If built in
-    	//If input redirect
-    	//If output redirect
-    	//If pipe
-    	if(strcmp(args[i],"exit")==0){//Built in Function
-    		printf("%s\n", "exiting StallionShell");
-    		for(i = 0; i < inputCounter; i++){
-		        free(args[i]); // Clean up mem before exit
-		    }
-    		exit(EXIT_SUCCESS);
-    	}
-    	else if(strcmp(args[i],"cd")==0){//Built in Function
-    		//need to store previos working directory
-    		printf("%s\n", "change directory");
-    		//If this eq ~ go home
-    		//If this eq - go to pwd
-    		if(args[1]==NULL){
-    			printf("%s: nullll.\n", args[1]);//Why does this prevent segfault?
-    		}
-    		if(chdir(args[1]) != 0){
-        		printf("%s: No such file or directory.\n", args[1]);
-    		}
-    	}
-    	else if(strcmp(args[i],"ioacct")==0){//Built in Function
-    		printf("%s\n", "beep, beep, boop. beep");
-    	}
-    	else if(strcmp(args[i],"bonus")==0){//Built in Function
-    		printf("%s\n", "useful function here");
-    	}
-        else{
-
-        }
-
-    }
-
-}
 
 //Tokenizes input, returns counter for # of arguments
 void tokenize(char *input) {
@@ -151,51 +110,48 @@ static int runCommands( int input, int first, int last){
     return 0;
 }
 
-void processCommands(int tokencount)
+void processCommands()
 {
+    pid_t wpid;
+    int status = 0;
 	char * temp = getenv("PATH");  
-    printf("The path goes %s", temp);
+    //printf("The path goes %s", temp);
     //int pathcount = 0;
     char * path;//[512];
     char * tpath;
     bool found = false;
     const char * delim = ":";
-    tpath = strtok(temp, delim);
-    while(tpath != NULL && !found)
+    pid = fork();
+    if(pid == 0)
     {
-        //patharray[pathcount] = malloc(strlen(tpath)+1);
-        //strcpy(patharray[pathcount++], tpath);
-        //printf("%s\n", patharray[pathcount-1] );
-        path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
-        strcpy(path,tpath);
-        strcat(path, "/");
-        strcat(path,args[0]);
-        printf("%s\n", path);
-        if(execv(path,(char**)args))
+        printf("Bitches in my child!\n");
+        tpath = strtok(temp, delim);
+        while(tpath != NULL)
         {
-            printf("Tried %s but no dice\n", path);
-            tpath = strtok(NULL, delim);
-        }
-        else
-        {
-            printf("Is this done?");
-            found = true;
+            //patharray[pathcount] = malloc(strlen(tpath)+1);
+            //strcpy(patharray[pathcount++], tpath);
+            //printf("%s\n", patharray[pathcount-1] );
+            path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
+            strcpy(path,tpath);
+            strcat(path, "/");
+            strcat(path,args[0]);
+            printf("%s\n", path);
+
+            if(execv(path,args) == -1)
+            {
+                printf("Tried %s but no dice\n", path);
+                tpath = strtok(NULL, delim);
+            }
         }
     }
-    //So if you try ls, it works, but ends shell, I need to have it run on the
-    //background or something of that sort.
-	/*temp = strtok("PATH", ':');
-	path = strtok("PATH", NULL);
-	char * command;
-	command = '/' + arg[0];	
-	bool found = false;
-	int temp = 0;
-	while(!found && temp < tokencount)
-	{
-		
-		//if(execv(path,arg) ==0)
-			found = true;
-	}*/
+    else if(pid > 0) 
+    {
+       while((wpid = wait(&status)) > 0)
+       {
+           printf("Waiting for my fuckasschild\n");
+       }
+    }
+    else printf("FORRRRRKKKKK\n");
 	//ultimate goal of finding the absolute path of the command and then running exec
 }
 
@@ -256,7 +212,7 @@ int main(void) {
 
 	    //Evaluate and execute input here
 	  
-    processCommands(3); //DERP
+    processCommands(); //DERP
     runCommands(0,0,0);
         //clearGlobals();
        // printf("%s\n", strlen(args[0]));
