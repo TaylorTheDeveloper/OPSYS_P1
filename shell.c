@@ -109,6 +109,46 @@ void exitShell(){
 
 }
 
+//ChangeDirectory
+void changeDirectory(){
+
+    printf("%s\n", "change directory");
+            if(argSize > 1){
+    printf("%s\n", "gt1");
+            //If this eq ~ go home
+                if(args[1] == "~"){
+                    //get home path, and go there
+    printf("%s\n", "go home");
+
+                }
+                else if(args[1] == "-"){
+            //If this eq - go to pwd
+                    //get prior path, then go. Store Global.
+    printf("%s\n", "go back to pwd");
+                    
+                }
+            }
+
+            if(chdir(args[1]) != 0){
+                printf("%s: No such file or directory.\n", args[1]);
+            }
+}
+
+static int runCommands( int input, int first, int last){
+//Input, first,last will be used for pipes
+    if (args[0] != NULL){
+        if (strcmp(args[0], "exit") == 0) {
+    printf(" %s", "Exiting StallionShell\n");
+            exitShell();
+        }
+        else if (strcmp(args[0],"cd")==0){
+    printf(" %s", "Change Directory\n");
+            changeDirectory();
+        }
+    }
+    return 0;
+}
+
 void processCommands(int tokencount)
 {
 	char * temp = getenv("PATH");  
@@ -206,22 +246,23 @@ int main(void) {
 	    //Tokenize Input here
 	    tokenize(input);
         //Print out tokens stuff
-        int i;
-        for(i = 0; i < argSize; i++){
-            printf("%s stored\n", args[i] );
-        }
+        int i=0;
+        // for(i = 0; i < argSize; i++){
+        //     printf("%s stored\n", args[i] );
+        // }
         //Parse here
 
 	    //Evaluate and execute input here
 	  
     processCommands(3); //DERP
-        clearGlobals();
+    runCommands(0,0,0);
+        //clearGlobals();
        // printf("%s\n", strlen(args[0]));
         clearGlobals();//Reset Global Data
         
-        for(i = 0; i < argSize; i++){
-            printf("%s stored\n", args[i] );
-        }
+        // for(i = 0; i < argSize; i++){
+        //     printf("%s stored\n", args[i] );
+        // }
 
 		}//End while loop
     return 0;
