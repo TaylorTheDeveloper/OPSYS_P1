@@ -102,6 +102,12 @@ void clearGlobals(){
     argSize = 0;//Set back to Zero
     
 }
+//Exit Shell
+void exitShell(){
+    clearGlobals();
+    exit(EXIT_SUCCESS);
+
+}
 
 void processCommands(int tokencount)
 {
