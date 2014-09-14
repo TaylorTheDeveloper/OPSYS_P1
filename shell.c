@@ -94,15 +94,12 @@ void tokenize(char *input) {
 }
 //Clears all the global elements
 void clearGlobals(){
-<<<<<<< HEAD
    //free(args);
-=======
     int i;
     for(i =0; i< argSize;i++){
         free(args[i]);
     }
     argSize = 0;//Set back to Zero
->>>>>>> ddef58bac59e92811143464ab388d5ee4d63fd99
     
 }
 
@@ -110,19 +107,35 @@ void processCommands(int tokencount)
 {
 	char * temp = getenv("PATH");  
     printf("The path goes %s", temp);
-    int pathcount = 0;
-    char * patharray[512];
+    //int pathcount = 0;
+    char * path;//[512];
     char * tpath;
+    bool found = false;
     const char * delim = ":";
     tpath = strtok(temp, delim);
-    while(tpath != NULL)
+    while(tpath != NULL && !found)
     {
-        patharray[pathcount] = malloc(strlen(tpath)+1);
-        strcpy(patharray[pathcount++], tpath);
-        printf("%s\n", patharray[pathcount-1] );
-        tpath = strtok(NULL, delim);
-
+        //patharray[pathcount] = malloc(strlen(tpath)+1);
+        //strcpy(patharray[pathcount++], tpath);
+        //printf("%s\n", patharray[pathcount-1] );
+        path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
+        strcpy(path,tpath);
+        strcat(path, "/");
+        strcat(path,args[0]);
+        printf("%s\n", path);
+        if(execv(path,(char**)args))
+        {
+            printf("Tried %s but no dice\n", path);
+            tpath = strtok(NULL, delim);
+        }
+        else
+        {
+            printf("Is this done?");
+            found = true;
+        }
     }
+    //So if you try ls, it works, but ends shell, I need to have it run on the
+    //background or something of that sort.
 	/*temp = strtok("PATH", ':');
 	path = strtok("PATH", NULL);
 	char * command;
@@ -195,18 +208,15 @@ int main(void) {
 
 	    //Evaluate and execute input here
 	  
-<<<<<<< HEAD
     processCommands(3); //DERP
         clearGlobals();
        // printf("%s\n", strlen(args[0]));
-=======
         clearGlobals();//Reset Global Data
         
         for(i = 0; i < argSize; i++){
             printf("%s stored\n", args[i] );
         }
 
->>>>>>> ddef58bac59e92811143464ab388d5ee4d63fd99
 		}//End while loop
     return 0;
 }
