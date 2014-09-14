@@ -18,73 +18,56 @@
 #define MAX_TOKENS 100
 #define MAX_ARGS 20
 //Derp
-static char* args[512];
+static char* args[MAX_ARGS];
+static int argSize;
 //Search For Program Function
 
 
 // Parse input
-char * parseInput(char *input) {
-	//char *argv[MAX_ARGS];  // Account for null string to execv
-	const char* delims = " \n\r\t\v\f"; //Input delimiters
-	char *token, *arg_array[MAX_TOKENS]; // Tokenized input
+void parseInput() {
 	int inputCounter =0;
 	int i;
-
-    token = strtok(input, delims);
-    while(token != NULL) {
-      arg_array[inputCounter] = malloc(strlen(token) + 1);
-      strcpy(arg_array[inputCounter++], token);
-      //printf("%s token\n", arg_array[inputCounter-1] );
-      token = strtok(NULL, delims);
-    }
 
     for(i = 0; i < inputCounter; i++){
     	//If built in
     	//If input redirect
     	//If output redirect
     	//If pipe
-    	// if(strcmp(arg_array[i],"exit")==0){//Built in Function
-    	// 	printf("%s\n", "exiting StallionShell");
-    	// 	for(i = 0; i < inputCounter; i++){
-		   //      free(arg_array[i]); // Clean up mem before exit
-		   //  }
-    	// 	exit(EXIT_SUCCESS);
-    	// }
-    	// else if(strcmp(arg_array[i],"cd")==0){//Built in Function
-    	// 	//need to store previos working directory
-    	// 	printf("%s\n", "change directory");
-    	// 	//If this eq ~ go home
-    	// 	//If this eq - go to pwd
-    	// 	if(arg_array[1]==NULL){
-    	// 		printf("%s: nullll.\n", argv[1]);//Why does this prevent segfault?
-    	// 	}
-    	// 	if(chdir(arg_array[1]) != 0){
-     //    		printf("%s: No such file or directory.\n", arg_array[1]);
-    	// 	}
-    	// }
-    	// else if(strcmp(arg_array[i],"ioacct")==0){//Built in Function
-    	// 	printf("%s\n", "beep, beep, boop. beep");
-    	// }
-    	// else if(strcmp(arg_array[i],"bonus")==0){//Built in Function
-    	// 	printf("%s\n", "useful function here");
-    	// }
-    	// else{//Store Commands for program executions
-    		// argv[i] = malloc(strlen(arg_array[i]) + 1);
-	     //    strcpy(argv[i], arg_array[i]);
-	     //  	printf("%s stored\n", argv[i] );
-    	//}
-        args[i] = malloc(strlen(arg_array[i]) + 1);
-            strcpy(args[i], arg_array[i]);
+    	if(strcmp(args[i],"exit")==0){//Built in Function
+    		printf("%s\n", "exiting StallionShell");
+    		for(i = 0; i < inputCounter; i++){
+		        free(args[i]); // Clean up mem before exit
+		    }
+    		exit(EXIT_SUCCESS);
+    	}
+    	else if(strcmp(args[i],"cd")==0){//Built in Function
+    		//need to store previos working directory
+    		printf("%s\n", "change directory");
+    		//If this eq ~ go home
+    		//If this eq - go to pwd
+    		if(args[1]==NULL){
+    			printf("%s: nullll.\n", args[1]);//Why does this prevent segfault?
+    		}
+    		if(chdir(args[1]) != 0){
+        		printf("%s: No such file or directory.\n", args[1]);
+    		}
+    	}
+    	else if(strcmp(args[i],"ioacct")==0){//Built in Function
+    		printf("%s\n", "beep, beep, boop. beep");
+    	}
+    	else if(strcmp(args[i],"bonus")==0){//Built in Function
+    		printf("%s\n", "useful function here");
+    	}
+        else{
+
+        }
+
     }
-    
-
-
-        return *args;//Returns Pointer to a Tokenized list
 
 }
 
 //Tokenizes input, returns counter for # of arguments
-int tokenize(char *input) {
+void tokenize(char *input) {
     //char *argv[MAX_ARGS];  // Account for null string to execv
     const char* delims = " \n\r\t\v\f"; //Input delimiters
     char *token, *arg_array[MAX_TOKENS]; // Tokenized input
@@ -100,15 +83,26 @@ int tokenize(char *input) {
     }
 
     for(i = 0; i < inputCounter; i++){
+        if(inputCounter == MAX_ARGS){            
+        printf("ERROR: To many Tokens!\nUse less than %d", MAX_ARGS);
+        }
         args[i] = malloc(strlen(arg_array[i]) + 1);
         strcpy(args[i], arg_array[i]);
     }
     
-    return inputCounter;//Input Counter
+    argSize = inputCounter;
 }
 //Clears all the global elements
 void clearGlobals(){
+<<<<<<< HEAD
    //free(args);
+=======
+    int i;
+    for(i =0; i< argSize;i++){
+        free(args[i]);
+    }
+    argSize = 0;//Set back to Zero
+>>>>>>> ddef58bac59e92811143464ab388d5ee4d63fd99
     
 }
 
@@ -190,20 +184,29 @@ int main(void) {
 	    };
 //Derp
         cmd = input;
-	    //Parse Input here
-	    int tokens = tokenize(input);
+	    //Tokenize Input here
+	    tokenize(input);
         //Print out tokens stuff
         int i;
-            for(i = 0; i < tokens; i++){
+        for(i = 0; i < argSize; i++){
             printf("%s stored\n", args[i] );
         }
         //Parse here
 
 	    //Evaluate and execute input here
 	  
+<<<<<<< HEAD
     processCommands(3); //DERP
         clearGlobals();
        // printf("%s\n", strlen(args[0]));
+=======
+        clearGlobals();//Reset Global Data
+        
+        for(i = 0; i < argSize; i++){
+            printf("%s stored\n", args[i] );
+        }
+
+>>>>>>> ddef58bac59e92811143464ab388d5ee4d63fd99
 		}//End while loop
     return 0;
 }
