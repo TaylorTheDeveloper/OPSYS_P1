@@ -20,7 +20,6 @@
 //Derp
 static char* args[MAX_ARGS];
 static int argSize;
-char* pwddir;
 //Search For Program Function
 
 
@@ -129,12 +128,12 @@ void changeDirectory(){
                     chdir(homedir);
             }
 
-    getcwd(pwddir, sizeof(pwddir));
 
 }
 
 static int runCommands( int input, int first, int last){
 //Input, first,last will be used for pipes
+    //Built In commands
     if (args[0] != NULL){
         if (strcmp(args[0], "exit") == 0) {
     printf(" %s", "Exiting StallionShell\n");
@@ -143,6 +142,10 @@ static int runCommands( int input, int first, int last){
         else if (strcmp(args[0],"cd")==0){
     printf(" %s", "Change Directory\n");
             changeDirectory();
+        }
+        else if (strcmp(args[0],"ioacct")==0){
+    printf(" %s", "ioacct\n");
+            
         }
     }
     return 0;
@@ -198,7 +201,6 @@ void processCommands(int tokencount)
 
 int main(void) {
     	//Shell Variables
-    pwddir = "."; //PWD must be the users current directory when starting
 	bool run = true;
     char* inputTokens;
   	const char* userName = getenv("USER");
