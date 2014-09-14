@@ -20,6 +20,7 @@
 //Derp
 static char* args[MAX_ARGS];
 static int argSize;
+char* pwddir;
 //Search For Program Function
 
 
@@ -111,27 +112,25 @@ void exitShell(){
 
 //ChangeDirectory
 void changeDirectory(){
+    const char* homedir = getenv("HOME");
 
-    printf("%s\n", "change directory");
             if(argSize > 1){
-    printf("%s\n", "gt1");
-            //If this eq ~ go home
-                if(args[1] == "~"){
-                    //get home path, and go there
-    printf("%s\n", "go home");
-
+                if(strcmp(args[1], "~") == 0){//go home
+                    chdir(homedir);
                 }
-                else if(args[1] == "-"){
-            //If this eq - go to pwd
-                    //get prior path, then go. Store Global.
-    printf("%s\n", "go back to pwd");
-                    
+                else if(strcmp(args[1], "-") == 0){//go prior path
+                    printf("%s\n", "go back to pwd");
+                }
+                else if(chdir(args[1]) != 0){ //Change to specified directory
+                printf("%s: No such file or directory.\n", args[1]);//Error message if fails                    
                 }
             }
-
-            if(chdir(args[1]) != 0){
-                printf("%s: No such file or directory.\n", args[1]);
+            else{//Go home if nothing specified
+                    chdir(homedir);
             }
+
+    getcwd(pwddir, sizeof(pwddir));
+
 }
 
 static int runCommands( int input, int first, int last){
@@ -199,6 +198,7 @@ void processCommands(int tokencount)
 
 int main(void) {
     	//Shell Variables
+    pwddir = "."; //PWD must be the users current directory when starting
 	bool run = true;
     char* inputTokens;
   	const char* userName = getenv("USER");
