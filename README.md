@@ -24,6 +24,13 @@ Exit, part of CD working now. Extended on parser.
 Issues: 
 -------------------------------------------------
 
+   -Issues with calling functions after bad or unknown commands(i.e. la or
+    something that doesn't exist): After an instance of something like that,
+    the shell does not work any more. Creates multiple child processes of the
+    shell.
+   -Need to add & functionality so that commands run in the background,
+   thinking of running an executable that has a while loop that prints shit
+   out, and testing it with that.
     const char* hostName[BUFFER_LENGTH];
     int hostCheck;
 getHostName()
