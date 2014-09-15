@@ -14,17 +14,16 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-
 //Global Constants
 #define BUFFER_LENGTH 256
 #define MAX_TOKENS 100
 #define MAX_ARGS 20
-//Derp
+
+//Global Variables
 static char previousDir[BUFFER_LENGTH];
 static char* args[MAX_ARGS];
 static int argSize;
 pid_t pid;
-//Search For Program Function
 
 //Tokenizes input, returns counter for # of arguments
 void tokenize(char *input) {
@@ -58,8 +57,8 @@ void clearGlobals(){
         free(args[i]);
     }
     argSize = 0;//Set back to Zero
-    
 }
+
 //Exit Shell
 void exitShell(){
     if(argSize > 1){
@@ -85,14 +84,14 @@ void changeDirectory(){
         if(strcmp(args[1], "~") == 0){//go home
             chdir(homedir);
         }
-        else if(strcmp(args[1], "-") == 0){//go prior path
+        else if(strcmp(args[1], "-") == 0){//go to prior path
             //printf("%s\n", "go back to pwd");
             if (chdir(previousDirClone) == -1){
                 printf("%s: No such file or directory.\n", "Previous Working Directory");
             }
         }
         else if(chdir(args[1]) != 0){ //Change to specified directory
-        printf("%s: No such file or directory.\n", args[1]);//Error message if fails                    
+        printf("%s: No such file or directory.\n", args[1]);                  
         }
     }
     else{//Go home if nothing specified
@@ -103,19 +102,19 @@ void changeDirectory(){
 }
 
 static int runCommands(){
-//Input, first,last will be used for pipes
-    //Built In commands
+
     if (args[0] != NULL){
+    //Built In commands
         if (strcmp(args[0], "exit") == 0) {
-    printf(" %s", "Exiting StallionShell\n");
+        //printf(" %s", "Exiting StallionShell\n");
             exitShell();
         }
         else if (strcmp(args[0],"cd")==0){
-    printf(" %s", "Change Directory\n");
+        //printf(" %s", "Change Directory\n");
             changeDirectory();
         }
         else if (strcmp(args[0],"ioacct")==0){
-    printf(" %s", "ioacct\n");
+        //printf(" %s", "ioacct\n");
             
         }
     }
