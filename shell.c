@@ -168,16 +168,15 @@ int main(void) {
   	const char* userName = getenv("USER");
     const char* path = getenv("PATH");
 	const char* shellName = "StallionShell";
-    const char hostName[BUFFER_LENGTH];
+    char hostName[BUFFER_LENGTH];
     char input[BUFFER_LENGTH];
     //Current Work Directory
 	char cwd[BUFFER_LENGTH];
     //Prior Work Directory
     char *pwd[BUFFER_LENGTH];
     int hostCheck;  
-    //Derp  
-    char* cmd;
-    //gethostname(hostName,sizeof hostName );
+    
+    gethostname(hostName,BUFFER_LENGTH );
     // if(hostCheck==-1){
     //     printf("ERROR: gethostname failed!\n");
     //       exit(EXIT_FAILURE);
@@ -192,7 +191,7 @@ int main(void) {
 	    getcwd(cwd, BUFFER_LENGTH); 
 	    if (cwd != NULL) {
 	    // Print prompt if getcwd is successful
-	    printf("%s@%s:%s $  ", userName, shellName, cwd);
+	    printf("%s@%s:%s $  ", userName, hostName, cwd);
 
         }
 	    else{
@@ -206,7 +205,6 @@ int main(void) {
 	      exit(EXIT_FAILURE);
 	    };
 //Derp
-        cmd = input;
 	    //Tokenize Input here
 	    tokenize(input);
         //Print out tokens stuff
