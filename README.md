@@ -30,7 +30,8 @@ Issues:
     shell.
    -Need to add & functionality so that commands run in the background,
    thinking of running an executable that has a while loop that prints shit
-   out, and testing it with that.
+   out, and testing it with that
+   -hostnameissue.
     const char* hostName[BUFFER_LENGTH];
     int hostCheck;
 getHostName()
@@ -48,3 +49,7 @@ In file included from shell.c:14:0:
 /usr/include/unistd.h:879:12: note: expected ‘char *’ but argument is of type ‘const char **’
  extern int gethostname (char *__name, size_t __len) __THROW __nonnull ((1));
             ^
+
+   - issue with tokenizing and parseing forces us to decide to make certain variables global
+
+   - issue with null termination args, fixed

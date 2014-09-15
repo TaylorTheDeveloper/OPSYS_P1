@@ -1,7 +1,7 @@
 all: Shell
 
 Shell: shell.o
-	gcc shell.o -o Shell -Wall -pedantic
+	gcc shell.o -o Shell -Wall -pedantic -g
 
 %.o: %.c
 	gcc -c $< -o $@

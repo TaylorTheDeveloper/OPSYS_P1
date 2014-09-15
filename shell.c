@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/types.h>
 
 //Global Constants
@@ -44,9 +45,9 @@ void tokenize(char *input) {
         printf("ERROR: To many Tokens!\nUse less than %d", MAX_ARGS);
         }
         args[i] = malloc(strlen(arg_array[i]) + 1);
-        strcpy(args[i], arg_array[i]);
+        strcpy(args[i], arg_array[i]);///make sure this null terminates
     }
-    
+    args[i] = NULL;
     argSize = inputCounter;
 }
 
@@ -125,7 +126,7 @@ void processCommands()
 {
     pid_t wpid;
     int status = 0;
-	char * temp = getenv("PATH");  
+	char * temp = getenv("PATH");  ///make a copy
     //printf("The path goes %s", temp);
     //int pathcount = 0;
     char * path;//[512];
@@ -143,14 +144,14 @@ void processCommands()
             //strcpy(patharray[pathcount++], tpath);
             //printf("%s\n", patharray[pathcount-1] );
             path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
-            strcpy(path,tpath);
+            strcpy(path,tpath);///does this null terminate?
             strcat(path, "/");
             strcat(path,args[0]);
-            printf("%s\n", path);
+            //printf("%s\n", path);
 
             if(execv(path,args) == -1)
             {
-                printf("Tried %s but no dice\n", path);
+                //printf("Tried %s but no dice\n", path);
                 tpath = strtok(NULL, delim);
             }
         }
@@ -181,6 +182,7 @@ int main(void) {
    
 	  // Run Shell
 	  while(run){
+
 	  	// Update current directory, output error if NULL
 	    getcwd(cwd, BUFFER_LENGTH); 
 	    if (cwd != NULL) {
