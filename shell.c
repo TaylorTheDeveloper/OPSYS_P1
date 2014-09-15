@@ -16,10 +16,11 @@
 
 
 //Global Constants
-#define BUFFER_LENGTH 255
+#define BUFFER_LENGTH 256
 #define MAX_TOKENS 100
 #define MAX_ARGS 20
 //Derp
+static char previousDir[BUFFER_LENGTH];
 static char* args[MAX_ARGS];
 static int argSize;
 pid_t pid;
@@ -27,17 +28,15 @@ pid_t pid;
 
 //Tokenizes input, returns counter for # of arguments
 void tokenize(char *input) {
-    //char *argv[MAX_ARGS];  // Account for null string to execv
-    const char* delims = " \n\r\t\v\f"; //Input delimiters
+   const char* delims = " \n\r\t\v\f"; // Input delimiters
     char *token, *arg_array[MAX_TOKENS]; // Tokenized input
-    int inputCounter =0;
+    int inputCounter =0;// Initilize inputCounter
     int i;
 
     token = strtok(input, delims);
     while(token != NULL) {
       arg_array[inputCounter] = malloc(strlen(token) + 1);
       strcpy(arg_array[inputCounter++], token);
-      //printf("%s token\n", arg_array[inputCounter-1] );
       token = strtok(NULL, delims);
     }
 
@@ -51,9 +50,9 @@ void tokenize(char *input) {
     
     argSize = inputCounter;
 }
+
 //Clears all the global elements
 void clearGlobals(){
-   //free(args);
     int i;
     for(i =0; i< argSize;i++){
         free(args[i]);
@@ -76,27 +75,34 @@ void exitShell(){
 
 //ChangeDirectory
 void changeDirectory(){
+    //Variables
     const char* homedir = getenv("HOME");
+    char previousDirClone[BUFFER_LENGTH];
+    strncpy(previousDirClone, previousDir, BUFFER_LENGTH);
+    getcwd(previousDir, BUFFER_LENGTH);
 
-            if(argSize > 1){
-                if(strcmp(args[1], "~") == 0){//go home
-                    chdir(homedir);
-                }
-                else if(strcmp(args[1], "-") == 0){//go prior path
-                    printf("%s\n", "go back to pwd");
-                }
-                else if(chdir(args[1]) != 0){ //Change to specified directory
-                printf("%s: No such file or directory.\n", args[1]);//Error message if fails                    
-                }
+    if(argSize > 1){
+        if(strcmp(args[1], "~") == 0){//go home
+            chdir(homedir);
+        }
+        else if(strcmp(args[1], "-") == 0){//go prior path
+            //printf("%s\n", "go back to pwd");
+            if (chdir(previousDirClone) == -1){
+                printf("%s: No such file or directory.\n", "Previous Working Directory");
             }
-            else{//Go home if nothing specified
-                    chdir(homedir);
-            }
+        }
+        else if(chdir(args[1]) != 0){ //Change to specified directory
+        printf("%s: No such file or directory.\n", args[1]);//Error message if fails                    
+        }
+    }
+    else{//Go home if nothing specified
+            chdir(homedir);
+    }
 
 
 }
 
-static int runCommands( int input, int first, int last){
+static int runCommands(){
 //Input, first,last will be used for pipes
     //Built In commands
     if (args[0] != NULL){
@@ -130,7 +136,7 @@ void processCommands()
     pid = fork();
     if(pid == 0)
     {
-        printf("Bitches in my child!\n");
+        printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
         while(tpath != NULL)
         {
@@ -154,7 +160,7 @@ void processCommands()
     {
        while((wpid = wait(&status)) > 0)
        {
-           printf("Waiting for my fuckasschild\n");
+           printf("Waiting for my child\n");
        }
     }
     else printf("FORRRRRKKKKK\n");
@@ -162,29 +168,18 @@ void processCommands()
 }
 
 int main(void) {
-    	//Shell Variables
+    //Shell Variables
 	bool run = true;
-    char* inputTokens;
-  	const char* userName = getenv("USER");
-    const char* path = getenv("PATH");
-	const char* shellName = "StallionShell";
+  	const char* userName = getenv("USER"); //Username
+    const char* path = getenv("PATH"); // Path Variable
+	const char* shellName = "StallionShell"; //Stallion Shell, oh yeah baby!
+    char input[BUFFER_LENGTH]; //Command Input
+	char cwd[BUFFER_LENGTH]; //Current Work Directory
     char hostName[BUFFER_LENGTH];
-    char input[BUFFER_LENGTH];
-    //Current Work Directory
-	char cwd[BUFFER_LENGTH];
-    //Prior Work Directory
-    char *pwd[BUFFER_LENGTH];
-    int hostCheck;  
-    
-    gethostname(hostName,BUFFER_LENGTH );
-    // if(hostCheck==-1){
-    //     printf("ERROR: gethostname failed!\n");
-    //       exit(EXIT_FAILURE);
-    // }
 
-    getcwd(cwd, BUFFER_LENGTH); 
-    *pwd = cwd;//Past Working Directory is the the current one right now
-        
+    gethostname(hostName,BUFFER_LENGTH );
+    getcwd(previousDir, BUFFER_LENGTH); //Past Working Directory is the the current one right now
+   
 	  // Run Shell
 	  while(run){
 	  	// Update current directory, output error if NULL
@@ -192,7 +187,6 @@ int main(void) {
 	    if (cwd != NULL) {
 	    // Print prompt if getcwd is successful
 	    printf("%s@%s:%s $  ", userName, hostName, cwd);
-
         }
 	    else{
 	    printf("ERROR: getcwd failed!\n");
@@ -204,27 +198,16 @@ int main(void) {
 	      printf("ERROR: fgets failed!\n");
 	      exit(EXIT_FAILURE);
 	    };
-//Derp
+
 	    //Tokenize Input here
 	    tokenize(input);
         //Print out tokens stuff
         int i=0;
-        // for(i = 0; i < argSize; i++){
-        //     printf("%s stored\n", args[i] );
-        // }
-        //Parse here
-
 	    //Evaluate and execute input here
 	  
-    processCommands(); //DERP
-    runCommands(0,0,0);
-        //clearGlobals();
-       // printf("%s\n", strlen(args[0]));
+        processCommands(); //DERP
+        runCommands();
         clearGlobals();//Reset Global Data
-        
-        // for(i = 0; i < argSize; i++){
-        //     printf("%s stored\n", args[i] );
-        // }
 
 		}//End while loop
     return 0;
