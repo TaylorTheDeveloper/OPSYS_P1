@@ -63,9 +63,15 @@ void clearGlobals(){
 }
 //Exit Shell
 void exitShell(){
-    clearGlobals();
-    exit(EXIT_SUCCESS);
-
+    if(argSize > 1){
+        int val = atoi(args[1]);
+        clearGlobals();
+        exit(val);
+    }
+    else{
+        clearGlobals();        
+        exit(EXIT_SUCCESS);
+    }
 }
 
 //ChangeDirectory
