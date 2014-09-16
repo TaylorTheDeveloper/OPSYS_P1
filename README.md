@@ -53,6 +53,7 @@ In file included from shell.c:14:0:
 /usr/include/unistd.h:879:12: note: expected ‘char *’ but argument is of type ‘const char **’
  extern int gethostname (char *__name, size_t __len) __THROW __nonnull ((1));
             ^
+   - Issue: When trying to run a program that doesnt exist, the shell doesnt take in input properly. 9-16-14
 
    - issue with tokenizing and parseing forces us to decide to make certain variables global
 

@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <time.h>
+#include <fcntl.h>
 #include <sys/types.h>
 
 //Global Constants
@@ -25,7 +25,7 @@ static char previousDir[BUFFER_LENGTH];
 static char* args[MAX_ARGS];
 static int argSize;
 static bool background;
-static bool redirect;
+static bool redirection;
 pid_t pid;
 
 //Tokenizes input, returns counter for # of arguments
@@ -50,7 +50,7 @@ void tokenize(char *input) {
         strcpy(args[i], arg_array[i]);///make sure this null terminates
     }
     args[i] = NULL;
-    argSize = inputCounter;
+    argSize = inputCounter+1;
 }
 
 //Clears all the global elements
@@ -62,7 +62,7 @@ void clearGlobals(){
     argSize = 0;//Set back to Zero
     
     background = false;
-    redirect = false;
+    redirection = false;
 }
 
 //Exit Shell
@@ -160,11 +160,72 @@ void processCommands(){
 	//ultimate goal of finding the absolute path of the command and then running exec
 }
 
+void redirectCommands(bool inout){
+
+	    printf("ERROR: redirect!\n");
+//In is 1(true), out is 0(false)
+char *cmd = malloc(80 * sizeof(char));
+char *binPath = malloc(80 * sizeof(char));
+strcpy(binPath, "/bin/");
+char *redirect = malloc(80 * sizeof(char));
+
+int i = 1;
+while(i < argSize){
+	printf("\n%s", args[i]);
+	i++;
+	//args[i] = strtok(NULL, " \0");
+	}
+
+strcpy(cmd, args[0]);
+strcpy(redirect,  args[2]);
+strcat(binPath, cmd);
+
+//check to see if file exists for input redirection
+if(inout == true){
+	if( access(redirect, F_OK) == -1){
+	printf("File doesn't exist\n");
+	return;
+	}
+}
+
+int pid = fork();
+	if (pid == -1) {
+		perror("fork");
+		_exit(1);
+	}
+	else if (pid >= 0 && inout == true) {
+		if(pid == 0){
+		int fd0 = open(redirect, O_RDONLY, 0);
+		dup2(fd0, STDIN_FILENO);
+		close(fd0);
+		execv(binPath, args);
+		//exit(EXIT_FAILURE);
+		}
+		else if(pid > 0){
+		waitpid(pid, 0, 0);
+		}	
+	}
+	else if (pid >= 0 && inout == false) {
+		if(pid == 0){
+		int fd0 = creat(redirect, 0644);
+		dup2(fd0, STDOUT_FILENO);
+		close(fd0);
+		execv(binPath, args);
+		//exit(EXIT_FAILURE);
+		}
+		else if(pid > 0){
+		waitpid(pid, 0, 0);
+		}	
+	}
+};
+
+
+
 int main(void) {
     //Shell Variables
 	bool run = true;
     background = false;
-    redirect = false;
+    redirection = false;
   	const char* userName = getenv("USER"); //Username
     const char* path = getenv("PATH"); // Path Variable
 	const char* shellName = "StallionShell"; //Stallion Shell, oh yeah baby!
@@ -200,8 +261,17 @@ int main(void) {
         //Print out tokens stuff
         int i=0;
 	    //Evaluate and execute input here
-	  
+	//if(strcmp(args[1], "<") == 0){//output redirection
+        //    redirectCommands(false);
+        //}
+	//else if(strcmp(args[1], ">") == 0){//inputredirection
+        //    redirectCommands(true);
+	//}
+	//else{//Handle as usual
+
+	    //printf("ERROR: getcwd failed!\n");
         processCommands(); //DERP
+	//}
         runCommands();
         clearGlobals();//Reset Global Data
 
