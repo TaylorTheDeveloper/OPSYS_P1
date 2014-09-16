@@ -19,6 +19,10 @@ log:
 Basic Prompt I/O
 9/9/14:
 Exit, part of CD working now. Extended on parser. 
+9/14/14
+Got all of CD working, fixed hostname, couple other things repaired. Code cleaned up.
+9/15/14
+Had issue with commands not null terminating, got that fixed today.
 
 
 Issues: 
