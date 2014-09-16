@@ -24,6 +24,8 @@
 static char previousDir[BUFFER_LENGTH];
 static char* args[MAX_ARGS];
 static int argSize;
+static bool background;
+static bool redirect;
 pid_t pid;
 
 //Tokenizes input, returns counter for # of arguments
@@ -58,6 +60,9 @@ void clearGlobals(){
         free(args[i]);
     }
     argSize = 0;//Set back to Zero
+    
+    background = false;
+    redirect = false;
 }
 
 //Exit Shell
@@ -122,44 +127,32 @@ static int runCommands(){
     return 0;
 }
 
-void processCommands()
-{
+void processCommands(){
     pid_t wpid;
     int status = 0;
 	char * temp = getenv("PATH");  ///make a copy
-    //printf("The path goes %s", temp);
-    //int pathcount = 0;
     char * path;//[512];
     char * tpath;
     bool found = false;
     const char * delim = ":";
     pid = fork();
-    if(pid == 0)
-    {
+
+    if(pid == 0){
         printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
-        while(tpath != NULL)
-        {
-            //patharray[pathcount] = malloc(strlen(tpath)+1);
-            //strcpy(patharray[pathcount++], tpath);
-            //printf("%s\n", patharray[pathcount-1] );
+        while(tpath != NULL){
             path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
             strcpy(path,tpath);///does this null terminate?
             strcat(path, "/");
             strcat(path,args[0]);
-            //printf("%s\n", path);
 
-            if(execv(path,args) == -1)
-            {
-                //printf("Tried %s but no dice\n", path);
+            if(execv(path,args) == -1){
                 tpath = strtok(NULL, delim);
             }
         }
     }
-    else if(pid > 0) 
-    {
-       while((wpid = wait(&status)) > 0)
-       {
+    else if(pid > 0){
+       while((wpid = wait(&status)) > 0){
            printf("Waiting for my child\n");
        }
     }
@@ -170,6 +163,8 @@ void processCommands()
 int main(void) {
     //Shell Variables
 	bool run = true;
+    background = false;
+    redirect = false;
   	const char* userName = getenv("USER"); //Username
     const char* path = getenv("PATH"); // Path Variable
 	const char* shellName = "StallionShell"; //Stallion Shell, oh yeah baby!
