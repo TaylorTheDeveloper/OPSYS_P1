@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <time.h>
 #include <sys/types.h>
 
 //Global Constants
@@ -25,12 +25,11 @@ static char previousDir[BUFFER_LENGTH];
 static char* args[MAX_ARGS];
 static int argSize;
 static bool background;
-static bool redirection;
+static bool redirect;
 pid_t pid;
 
 //Tokenizes input, returns counter for # of arguments
 void tokenize(char *input) {
-    background = false;     //Derp
    const char* delims = " \n\r\t\v\f"; // Input delimiters
     char *token, *arg_array[MAX_TOKENS]; // Tokenized input
     int inputCounter =0;// Initilize inputCounter
@@ -42,9 +41,7 @@ void tokenize(char *input) {
       strcpy(arg_array[inputCounter++], token);
       token = strtok(NULL, delims);
     }
-    if(inputCounter > 1)          //Derp
-        if(strcmp(arg_array[1], "&") == 0)
-            background = true;
+
     for(i = 0; i < inputCounter; i++){
         if(inputCounter == MAX_ARGS){            
         printf("ERROR: To many Tokens!\nUse less than %d", MAX_ARGS);
@@ -53,7 +50,7 @@ void tokenize(char *input) {
         strcpy(args[i], arg_array[i]);///make sure this null terminates
     }
     args[i] = NULL;
-    argSize = inputCounter+1;
+    argSize = inputCounter;
 }
 
 //Clears all the global elements
@@ -63,9 +60,9 @@ void clearGlobals(){
         free(args[i]);
     }
     argSize = 0;//Set back to Zero
-    
+
     background = false;
-    redirection = false;
+    redirect = false;
 }
 
 //Exit Shell
@@ -124,30 +121,22 @@ static int runCommands(){
         }
         else if (strcmp(args[0],"ioacct")==0){
         //printf(" %s", "ioacct\n");
+            
         }
-        else if(strcmp(args[0], "scramble") == 0) {}
-            //here we'll scramble some eggs and stuff
     }
     return 0;
 }
 
-void processCommands()
-{
+void processCommands(){
     pid_t wpid;
-    
     int status = 0;
 	char * temp = getenv("PATH");  ///make a copy
-    char * path, tpath;
+    char * path;//[512];
+    char * tpath;
     bool found = false;
     const char * delim = ":";
-    
-//planning on creating Daemon(background) process here.Based on the value of
-//global bool, it will go ahead and execute process normally or not.
-//works like this: fork, then kill parent process.call umask(0) to unmask file mode then Assign new sid with setsid() to child so
-//that it doesn't become a zombie. change directory of the process to root, and
-//close stdin,stdout,stderr. Open log file to take output from the
-//process(optional, but useful for debugging and testing).
     pid = fork();
+
     if(pid == 0){
         printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
@@ -171,72 +160,11 @@ void processCommands()
 	//ultimate goal of finding the absolute path of the command and then running exec
 }
 
-void redirectCommands(bool inout){
-
-	    printf("ERROR: redirect!\n");
-//In is 1(true), out is 0(false)
-char *cmd = malloc(80 * sizeof(char));
-char *binPath = malloc(80 * sizeof(char));
-strcpy(binPath, "/bin/");
-char *redirect = malloc(80 * sizeof(char));
-
-int i = 1;
-while(i < argSize){
-	printf("\n%s", args[i]);
-	i++;
-	//args[i] = strtok(NULL, " \0");
-	}
-
-strcpy(cmd, args[0]);
-strcpy(redirect,  args[2]);
-strcat(binPath, cmd);
-
-//check to see if file exists for input redirection
-if(inout == true){
-	if( access(redirect, F_OK) == -1){
-	printf("File doesn't exist\n");
-	return;
-	}
-}
-
-int pid = fork();
-	if (pid == -1) {
-		perror("fork");
-		_exit(1);
-	}
-	else if (pid >= 0 && inout == true) {
-		if(pid == 0){
-		int fd0 = open(redirect, O_RDONLY, 0);
-		dup2(fd0, STDIN_FILENO);
-		close(fd0);
-		execv(binPath, args);
-		//exit(EXIT_FAILURE);
-		}
-		else if(pid > 0){
-		waitpid(pid, 0, 0);
-		}	
-	}
-	else if (pid >= 0 && inout == false) {
-		if(pid == 0){
-		int fd0 = creat(redirect, 0644);
-		dup2(fd0, STDOUT_FILENO);
-		close(fd0);
-		execv(binPath, args);
-		//exit(EXIT_FAILURE);
-		}
-		else if(pid > 0){
-		waitpid(pid, 0, 0);
-		}	
-	}
-};
-
-
-
 int main(void) {
     //Shell Variables
 	bool run = true;
     background = false;
-    redirection = false;
+    redirect = false;
   	const char* userName = getenv("USER"); //Username
     const char* path = getenv("PATH"); // Path Variable
 	const char* shellName = "StallionShell"; //Stallion Shell, oh yeah baby!
@@ -272,17 +200,8 @@ int main(void) {
         //Print out tokens stuff
         int i=0;
 	    //Evaluate and execute input here
-	//if(strcmp(args[1], "<") == 0){//output redirection
-        //    redirectCommands(false);
-        //}
-	//else if(strcmp(args[1], ">") == 0){//inputredirection
-        //    redirectCommands(true);
-	//}
-	//else{//Handle as usual
-
-	    //printf("ERROR: getcwd failed!\n");
+	  
         processCommands(); //DERP
-	//}
         runCommands();
         clearGlobals();//Reset Global Data
 
