@@ -30,6 +30,7 @@ pid_t pid;
 
 //Tokenizes input, returns counter for # of arguments
 void tokenize(char *input) {
+    background = false;     //Derp
    const char* delims = " \n\r\t\v\f"; // Input delimiters
     char *token, *arg_array[MAX_TOKENS]; // Tokenized input
     int inputCounter =0;// Initilize inputCounter
@@ -41,7 +42,9 @@ void tokenize(char *input) {
       strcpy(arg_array[inputCounter++], token);
       token = strtok(NULL, delims);
     }
-
+    if(inputCounter > 1)          //Derp
+        if(strcmp(arg_array[1], "&") == 0)
+            background = true;
     for(i = 0; i < inputCounter; i++){
         if(inputCounter == MAX_ARGS){            
         printf("ERROR: To many Tokens!\nUse less than %d", MAX_ARGS);
@@ -121,22 +124,30 @@ static int runCommands(){
         }
         else if (strcmp(args[0],"ioacct")==0){
         //printf(" %s", "ioacct\n");
-            
         }
+        else if(strcmp(args[0], "scramble") == 0) {}
+            //here we'll scramble some eggs and stuff
     }
     return 0;
 }
 
-void processCommands(){
+void processCommands()
+{
     pid_t wpid;
+    
     int status = 0;
 	char * temp = getenv("PATH");  ///make a copy
-    char * path;//[512];
-    char * tpath;
+    char * path, tpath;
     bool found = false;
     const char * delim = ":";
+    
+//planning on creating Daemon(background) process here.Based on the value of
+//global bool, it will go ahead and execute process normally or not.
+//works like this: fork, then kill parent process.call umask(0) to unmask file mode then Assign new sid with setsid() to child so
+//that it doesn't become a zombie. change directory of the process to root, and
+//close stdin,stdout,stderr. Open log file to take output from the
+//process(optional, but useful for debugging and testing).
     pid = fork();
-
     if(pid == 0){
         printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
