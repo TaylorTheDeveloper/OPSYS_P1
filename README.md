@@ -58,3 +58,10 @@ In file included from shell.c:14:0:
    - issue with tokenizing and parseing forces us to decide to make certain variables global
 
    - issue with null termination args, fixed
+
+   - Issue with ioacct 9-17-14 while working
+   *** Error in `./Shell': free(): invalid next size (fast): 0x0000000000c2f110 ***
+Waiting for my child
+*** Error in `./Shell': double free or corruption (top): 0x0000000000c2f110 ***
+Aborted (core dumped)
+        - Must exit multiple times from shell.

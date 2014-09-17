@@ -108,6 +108,19 @@ void clearGlobals(){
     background = false;
     redirect = false;
 }
+/*
+This routine works as a helper to ioacct. It sets the global data values.
+*/
+void setGlobals(char *ary[], int size, bool bg, bool redir){
+    int i;
+    for(i =0; i< size;i++){
+      strcpy(args[i++], ary[i]);
+    }
+    argSize = size;//Set back to Zero
+
+    background = bg;
+    redirect = redir;
+}
 
 /*
 This routine exits the command line.
@@ -176,6 +189,9 @@ void ioacct(){
         int ioArgSize = 0;
         char ioInfo[BUFFER_LENGTH];
         int ioValue;
+        bool ioBackground, ioRedirect;
+        ioBackground = background;
+        ioRedirect = redirect;
       
         sprintf(processFileName, "/proc/%d/io", pid); // Create pid file
         FILE* file = fopen(processFileName, "r"); // Open File to be read
@@ -187,20 +203,19 @@ void ioacct(){
             ioArgs[i-1] = args[i];
             ++ioArgSize;
         }
+        clearGlobals();
+        setGlobals(ioArgs,ioArgSize,ioBackground,ioRedirect);
 
         // now reprocess the command
-       // handleCommand(truncatedCommand, truncatedSize);
-        ioacctProcessCommands(ioArgs);
+        //Clear Buffer, reset glbals, then call 
+        processCommands();
       
         // then read "read_bytes" and "write_bytes" and write values out
-        while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF)
-        {
-            if (strcmp(ioInfo, "read_bytes:") == 0)
-            {
+        while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF){
+            if (strcmp(ioInfo, "read_bytes:") == 0){
                 printf("bytes read: %d\n", ioValue);
             }
-            else if (strcmp(ioInfo, "write_bytes:") == 0)
-            {
+            else if (strcmp(ioInfo, "write_bytes:") == 0){
                 printf("bytes written: %d\n", ioValue);
             }
         }
@@ -230,38 +245,6 @@ static int runCommands(){
         }
     }
     return 0;
-}
-void ioacctProcessCommands(char** ioargs){
-    pid_t wpid;
-    int status = 0;
-    char * temp = getenv("PATH"); 
-    char * path;//[512];
-    char * tpath;
-    bool found = false;
-    const char * delim = ":";
-    pid = fork();
-
-    if(pid == 0){
-        printf("Stuff in child!\n");
-        tpath = strtok(temp, delim);
-        while(tpath != NULL){
-            path = malloc(strlen(tpath) + strlen(ioargs[0]) + 1); //allocating just enough so we can build our paths
-            strcpy(path,tpath);
-            strcat(path, "/");
-            strcat(path,ioargs[0]);
-
-            if(execv(path,ioargs) == -1){
-                tpath = strtok(NULL, delim);
-            }
-        }
-    }
-    else if(pid > 0){
-       while((wpid = wait(&status)) > 0){
-           printf("Waiting for my child\n");
-       }
-    }
-    else printf("FORRRRRKKKKK\n");
-    //ultimate goal of finding the absolute path of the command and then running exec
 }
 
 void processCommands(){
