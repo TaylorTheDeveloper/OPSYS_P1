@@ -28,7 +28,49 @@ static bool background;
 static bool redirect;
 pid_t pid;
 
-//Tokenizes input, returns counter for # of arguments
+/*
+This routine replaces a character within a character 
+array with another character.
+Cite: 
+https://www.daniweb.com/software-development/c/threads/461567/replacing-a-character-with-another-character-in-given-string 
+*/
+strreplace(char s[], char chr, char repl_chr){
+     int i=0;
+     while(s[i]!='\0'){
+           if(s[i]==chr){
+               s[i]=repl_chr;
+           }  
+           i++; 
+     }
+    puts(s);
+    return 0;
+}
+/*
+This routine checks for the & symbol, 
+which tells the system to run the process in the background.
+If found, it will erase the symbol and set the background variable to true.
+*/
+void backgroundCheck(char *input){
+    char * pch;
+
+    pch=strchr(input,'&');
+    while (pch!=NULL){
+      //  printf ("found at %d\n",pch-input+1);
+        background = true;
+        pch=strchr(pch+1,'&');
+        strreplace(input,'&',' ');
+    }
+
+    if(background){
+        printf ("background set\n\n");
+
+    }
+
+}
+/*
+This routine tokenizes the input. Stores Values Globally for both the input array and the size of that array.
+Maximum of 20 input tokens.
+*/
 void tokenize(char *input) {
    const char* delims = " \n\r\t\v\f"; // Input delimiters
     char *token, *arg_array[MAX_TOKENS]; // Tokenized input
@@ -53,7 +95,9 @@ void tokenize(char *input) {
     argSize = inputCounter;
 }
 
-//Clears all the global elements
+/*
+This routine is to be called at the end of each cycle of the shell. It cleans up the global memory and resets all values
+*/
 void clearGlobals(){
     int i;
     for(i =0; i< argSize;i++){
@@ -65,7 +109,13 @@ void clearGlobals(){
     redirect = false;
 }
 
-//Exit Shell
+/*
+This routine exits the command line.
+If there is a specified argument for a specific error code,
+then the user can type something like:
+exit 55
+and the program will exit with code 55 instead of code 0, which is default.
+*/
 void exitShell(){
     if(argSize > 1){
         int val = atoi(args[1]);
@@ -78,7 +128,13 @@ void exitShell(){
     }
 }
 
-//ChangeDirectory
+/*
+Change directory handles all the change directory commands.
+In addition to ".", "..", and "~". The user can also go to 
+thier previous working directory with "-".
+
+If it fails, it will output an error message.
+*/
 void changeDirectory(){
     //Variables
     const char* homedir = getenv("HOME");
@@ -93,7 +149,7 @@ void changeDirectory(){
         else if(strcmp(args[1], "-") == 0){//go to prior path
             //printf("%s\n", "go back to pwd");
             if (chdir(previousDirClone) == -1){
-                printf("%s: No such file or directory.\n", "Previous Working Directory");
+                printf("%s: No such file or directory.\n", "pwd");
             }
         }
         else if(chdir(args[1]) != 0){ //Change to specified directory
@@ -106,7 +162,55 @@ void changeDirectory(){
 
 
 }
+/*
+ioacct
+Executes the rest of the command line operand as if it were entered directly on
+the shell command line. Once execution of the command line completes, it will
+print the number I/O bytes read and written. ioacct does not have to work
+with background processes, pipes, or input/output redirection.
+*/
+void ioacct(){
+        int pid = getpid();
+        char processFileName[BUFFER_LENGTH];
+        char* ioArgs[BUFFER_LENGTH];
+        int ioArgSize = 0;
+        char ioInfo[BUFFER_LENGTH];
+        int ioValue;
+      
+        sprintf(processFileName, "/proc/%d/io", pid); // Create pid file
+        FILE* file = fopen(processFileName, "r"); // Open File to be read
+      
+        // execute command as normal
+        // remove "ioacct" from command, create new command array
+        int i;
+        for (i = 1; i < argSize; ++i){
+            ioArgs[i-1] = args[i];
+            ++ioArgSize;
+        }
 
+        // now reprocess the command
+       // handleCommand(truncatedCommand, truncatedSize);
+        ioacctProcessCommands(ioArgs);
+      
+        // then read "read_bytes" and "write_bytes" and write values out
+        while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF)
+        {
+            if (strcmp(ioInfo, "read_bytes:") == 0)
+            {
+                printf("bytes read: %d\n", ioValue);
+            }
+            else if (strcmp(ioInfo, "write_bytes:") == 0)
+            {
+                printf("bytes written: %d\n", ioValue);
+            }
+        }
+      
+        fclose(file); // close the file
+}
+
+/*
+Run commands will run built in commands for us.
+*/
 static int runCommands(){
 
     if (args[0] != NULL){
@@ -121,55 +225,76 @@ static int runCommands(){
         }
         else if (strcmp(args[0],"ioacct")==0){
         //printf(" %s", "ioacct\n");
+            ioacct();
             
         }
     }
     return 0;
 }
-
-void generateCommands()
-{
-    const char * temp = getEnv("PATH");
-    const char * delim = ":";
-    int i, pathcount = 0;
-    for(i = 0;i < n;++n)
-        if(strcmp(temp[i], delim) == 0)
-            pathcount++;
-    i = 0;   //Zeroing i to reuse as the current index in the path array
-    char * paths[pathcount];
-    char * tpath;
-    tpath = strtok(temp, delim);
-        while(tpath != NULL)
-        {
-            paths[i] = malloc(strlen(tpath) + strlen(args[0]) + 1);
-            strcpy(paths[i],tpath);
-            strcat(paths[i], "/");
-            strcat(paths[i],args[0]);
-            ++i;
-            tpath = strtok(NULL, delim);
-        }
-}
-
-void processCommands()
-{
+void ioacctProcessCommands(char** ioargs){
     pid_t wpid;
     int status = 0;
+    char * temp = getenv("PATH"); 
+    char * path;//[512];
+    char * tpath;
+    bool found = false;
+    const char * delim = ":";
     pid = fork();
+
     if(pid == 0){
         printf("Stuff in child!\n");
-        generateCommands();
-        if(execv(path,args) == -1)
-            {
+        tpath = strtok(temp, delim);
+        while(tpath != NULL){
+            path = malloc(strlen(tpath) + strlen(ioargs[0]) + 1); //allocating just enough so we can build our paths
+            strcpy(path,tpath);
+            strcat(path, "/");
+            strcat(path,ioargs[0]);
+
+            if(execv(path,ioargs) == -1){
+                tpath = strtok(NULL, delim);
             }
+        }
     }
-    else if(pid > 0 &&  !background){
+    else if(pid > 0){
        while((wpid = wait(&status)) > 0){
            printf("Waiting for my child\n");
        }
     }
-    else if(pid > 0 && background)
-        wpid = waitpid(,WNOHANG)
-     //will create background process if necessary
+    else printf("FORRRRRKKKKK\n");
+    //ultimate goal of finding the absolute path of the command and then running exec
+}
+
+void processCommands(){
+    pid_t wpid;
+    int status = 0;
+	char * temp = getenv("PATH"); 
+    char * path;//[512];
+    char * tpath;
+    bool found = false;
+    const char * delim = ":";
+    pid = fork();
+
+    if(pid == 0){
+        printf("Stuff in child!\n");
+        tpath = strtok(temp, delim);
+        while(tpath != NULL){
+            path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
+            strcpy(path,tpath);
+            strcat(path, "/");
+            strcat(path,args[0]);
+
+            if(execv(path,args) == -1){
+                tpath = strtok(NULL, delim);
+            }
+        }
+    }
+    else if(pid > 0){
+       while((wpid = wait(&status)) > 0){
+           printf("Waiting for my child\n");
+       }
+    }
+    else printf("FORRRRRKKKKK\n");
+	//ultimate goal of finding the absolute path of the command and then running exec
 }
 
 int main(void) {
@@ -207,6 +332,9 @@ int main(void) {
 	      exit(EXIT_FAILURE);
 	    };
 
+        backgroundCheck(input);
+
+        printf("%s\n\n",input);
 	    //Tokenize Input here
 	    tokenize(input);
         //Print out tokens stuff
