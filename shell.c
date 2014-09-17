@@ -127,37 +127,49 @@ static int runCommands(){
     return 0;
 }
 
-void processCommands(){
+void generateCommands()
+{
+    const char * temp = getEnv("PATH");
+    const char * delim = ":";
+    int i, pathcount = 0;
+    for(i = 0;i < n;++n)
+        if(strcmp(temp[i], delim) == 0)
+            pathcount++;
+    i = 0;   //Zeroing i to reuse as the current index in the path array
+    char * paths[pathcount];
+    char * tpath;
+    tpath = strtok(temp, delim);
+        while(tpath != NULL)
+        {
+            paths[i] = malloc(strlen(tpath) + strlen(args[0]) + 1);
+            strcpy(paths[i],tpath);
+            strcat(paths[i], "/");
+            strcat(paths[i],args[0]);
+            ++i;
+            tpath = strtok(NULL, delim);
+        }
+}
+
+void processCommands()
+{
     pid_t wpid;
     int status = 0;
-	char * temp = getenv("PATH");  ///make a copy
-    char * path;//[512];
-    char * tpath;
-    bool found = false;
-    const char * delim = ":";
     pid = fork();
-
     if(pid == 0){
         printf("Stuff in child!\n");
-        tpath = strtok(temp, delim);
-        while(tpath != NULL){
-            path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
-            strcpy(path,tpath);///does this null terminate?
-            strcat(path, "/");
-            strcat(path,args[0]);
-
-            if(execv(path,args) == -1){
-                tpath = strtok(NULL, delim);
+        generateCommands();
+        if(execv(path,args) == -1)
+            {
             }
-        }
     }
-    else if(pid > 0){
+    else if(pid > 0 &&  !background){
        while((wpid = wait(&status)) > 0){
            printf("Waiting for my child\n");
        }
     }
-    else printf("FORRRRRKKKKK\n");
-	//ultimate goal of finding the absolute path of the command and then running exec
+    else if(pid > 0 && background)
+        wpid = waitpid(,WNOHANG)
+     //will create background process if necessary
 }
 
 int main(void) {
