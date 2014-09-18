@@ -65,3 +65,5 @@ Waiting for my child
 *** Error in `./Shell': double free or corruption (top): 0x0000000000c2f110 ***
 Aborted (core dumped)
         - Must exit multiple times from shell.
+
+    - Occasionaly commands that require a param get hung up, such as wc without a specified file
