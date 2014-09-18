@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <time.h>
+#include <fcntl.h>
 #include <sys/types.h>
 
 //Global Constants
@@ -108,6 +108,19 @@ void clearGlobals(){
     background = false;
     redirect = false;
 }
+/*
+This routine works as a helper to ioacct. It sets the global data values.
+*/
+void setGlobals(char *ary[], int size, bool bg, bool redir){
+    int i;
+    for(i =0; i< size;i++){
+      strcpy(args[i++], ary[i]);
+    }
+    argSize = size;//Set back to Zero
+
+    background = bg;
+    redirect = redir;
+}
 
 /*
 This routine exits the command line.
@@ -176,6 +189,9 @@ void ioacct(){
         int ioArgSize = 0;
         char ioInfo[BUFFER_LENGTH];
         int ioValue;
+        bool ioBackground, ioRedirect;
+        ioBackground = background;
+        ioRedirect = redirect;
       
         sprintf(processFileName, "/proc/%d/io", pid); // Create pid file
         FILE* file = fopen(processFileName, "r"); // Open File to be read
@@ -187,20 +203,19 @@ void ioacct(){
             ioArgs[i-1] = args[i];
             ++ioArgSize;
         }
+        clearGlobals();
+        setGlobals(ioArgs,ioArgSize,ioBackground,ioRedirect);
 
         // now reprocess the command
-       // handleCommand(truncatedCommand, truncatedSize);
-        ioacctProcessCommands(ioArgs);
+        //Clear Buffer, reset glbals, then call 
+        //processCommands();
       
         // then read "read_bytes" and "write_bytes" and write values out
-        while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF)
-        {
-            if (strcmp(ioInfo, "read_bytes:") == 0)
-            {
+        while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF){
+            if (strcmp(ioInfo, "read_bytes:") == 0){
                 printf("bytes read: %d\n", ioValue);
             }
-            else if (strcmp(ioInfo, "write_bytes:") == 0)
-            {
+            else if (strcmp(ioInfo, "write_bytes:") == 0){
                 printf("bytes written: %d\n", ioValue);
             }
         }
@@ -231,41 +246,64 @@ static int runCommands(){
     }
     return 0;
 }
-void ioacctProcessCommands(char** ioargs){
-    pid_t wpid;
-    int status = 0;
-    char * temp = getenv("PATH"); 
-    char * path;
-    char * tpath;
-    bool found = false;
-    const char * delim = ":";
-    pid = fork();
+/*
+redirectCommands: Currently not working
+*/
+void redirectCommands(bool inout){
 
-    if(pid == 0){
-        //printf("Stuff in child!\n");
-        tpath = strtok(temp, delim);
-        while(tpath != NULL){
-            path = malloc(strlen(tpath) + strlen(ioargs[0]) + 1); //allocating just enough so we can build our paths
-            strcpy(path,tpath);
-            strcat(path, "/");
-            strcat(path,ioargs[0]);
+char *cmd = malloc(80 * sizeof(char));
+char *binPath = malloc(80 * sizeof(char));
+strcpy(binPath, "/bin/");
+char *redirect = malloc(80 * sizeof(char));
 
-            if(execv(path,ioargs) == -1){
-                tpath = strtok(NULL, delim);
-            }
-        }
+int i = 1;
+while(i < argSize){
+    printf("\n%s", args[i]);
+    i++;
+    //args[i] = strtok(NULL, " \0");
     }
-    else if(pid > 0){
-       while((wpid = wait(&status)) > 0){
-           //printf("Waiting for my child\n");
-       }
+strcpy(cmd, args[0]);
+strcpy(redirect,  args[2]);
+strcat(binPath, cmd);
+
+//check to see if file exists for input redirection
+if(inout == true){
+    if( access(redirect, F_OK) == -1){
+    printf("File doesn't exist\n");
+    return;
     }
-    else
-    {
-        exit(1);
-    }
-    //ultimate goal of finding the absolute path of the command and then running exec
 }
+pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        _exit(1);
+    }
+    else if (pid >= 0 && inout == true) {
+        if(pid == 0){
+        int fd0 = open(redirect, O_RDONLY, 0);
+        dup2(fd0, STDIN_FILENO);
+        close(fd0);
+        execv(binPath, args);
+        //exit(EXIT_FAILURE);
+        }
+        else if(pid > 0){
+        waitpid(pid, 0, 0);
+        }   
+    }
+    else if (pid >= 0 && inout == false) {
+        if(pid == 0){
+        int fd0 = creat(redirect, 0644);
+        dup2(fd0, STDOUT_FILENO);
+        close(fd0);
+        execv(binPath, args);
+        //exit(EXIT_FAILURE);
+        }
+        else if(pid > 0){
+        waitpid(pid, 0, 0);
+        }   
+    }
+}
+
 
 void processCommands(){
     pid_t wpid;
@@ -277,7 +315,8 @@ void processCommands(){
     const char * delim = ":";
     pid = fork();
 
-    if(pid == 0 ){
+    if(pid == 0 )
+    {
         //printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
         while(tpath != NULL){
@@ -290,23 +329,28 @@ void processCommands(){
 
         }
         if((strcmp(args[0], "exit") != 0) && (strcmp(args[0], "cd") != 0) && (strcmp(args[0], "ioacct") != 0) )
-    {
-        printf("Error! Command not found.\n");
-        exit(0);
+        {
+            printf("Error! Command not found.\n");
+            exit(0);
+        }
     }
-    else if(pid > 0 && !background){
-       while((wpid = wait(&status)) > 0){
+    else if(pid > 0 && !background)
+    {
+            while((wpid = wait(&status)) > 0)
+            {
            //printf("Waiting for my child\n");
-       }
+            }
+       // pid_t child_finished = waitpid(-1, (int *)NULL, WNOHANG);
+       //  printf("pid %d completed\n", child_finished);
     }
-    else if(pid > 0 && background)
-    {
-        printf("Background Process running");
-        waitpid(-1,&status,WNOHANG);
-    }
+        else if(pid > 0 && background)
+        {   
+            printf("Background Process running");
+            waitpid(-1,&status,WNOHANG);
+        }
     else exit(1);
 }
-}
+
 
 int main(void) {
     //Shell Variables
