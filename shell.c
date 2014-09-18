@@ -86,7 +86,7 @@ void tokenize(char *input) {
 
     for(i = 0; i < inputCounter; i++){
         if(inputCounter == MAX_ARGS){            
-        printf("ERROR: To many Tokens!\nUse less than %d", MAX_ARGS);
+        printf("ERROR: Too many Tokens!\nUse less than %d", MAX_ARGS);
         }
         args[i] = malloc(strlen(arg_array[i]) + 1);
         strcpy(args[i], arg_array[i]);///make sure this null terminates
@@ -235,14 +235,14 @@ void ioacctProcessCommands(char** ioargs){
     pid_t wpid;
     int status = 0;
     char * temp = getenv("PATH"); 
-    char * path;//[512];
+    char * path;
     char * tpath;
     bool found = false;
     const char * delim = ":";
     pid = fork();
 
     if(pid == 0){
-        printf("Stuff in child!\n");
+        //printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
         while(tpath != NULL){
             path = malloc(strlen(tpath) + strlen(ioargs[0]) + 1); //allocating just enough so we can build our paths
@@ -257,10 +257,13 @@ void ioacctProcessCommands(char** ioargs){
     }
     else if(pid > 0){
        while((wpid = wait(&status)) > 0){
-           printf("Waiting for my child\n");
+           //printf("Waiting for my child\n");
        }
     }
-    else printf("FORRRRRKKKKK\n");
+    else
+    {
+        exit(1);
+    }
     //ultimate goal of finding the absolute path of the command and then running exec
 }
 
@@ -274,27 +277,35 @@ void processCommands(){
     const char * delim = ":";
     pid = fork();
 
-    if(pid == 0){
-        printf("Stuff in child!\n");
+    if(pid == 0 ){
+        //printf("Stuff in child!\n");
         tpath = strtok(temp, delim);
         while(tpath != NULL){
             path = malloc(strlen(tpath) + strlen(args[0]) + 1); //allocating just enough so we can build our paths
             strcpy(path,tpath);
             strcat(path, "/");
             strcat(path,args[0]);
+            execv(path,args);
+            tpath = strtok(NULL, delim);
 
-            if(execv(path,args) == -1){
-                tpath = strtok(NULL, delim);
-            }
         }
+        if((strcmp(args[0], "exit") != 0) && (strcmp(args[0], "cd") != 0) && (strcmp(args[0], "ioacct") != 0) )
+    {
+        printf("Error! Command not found.\n");
+        exit(0);
     }
-    else if(pid > 0){
+    else if(pid > 0 && !background){
        while((wpid = wait(&status)) > 0){
-           printf("Waiting for my child\n");
+           //printf("Waiting for my child\n");
        }
     }
-    else printf("FORRRRRKKKKK\n");
-	//ultimate goal of finding the absolute path of the command and then running exec
+    else if(pid > 0 && background)
+    {
+        printf("Background Process running");
+        waitpid(-1,&status,WNOHANG);
+    }
+    else exit(1);
+}
 }
 
 int main(void) {
@@ -334,7 +345,7 @@ int main(void) {
 
         backgroundCheck(input);
 
-        printf("%s\n\n",input);
+        //printf("%s\n\n",input);
 	    //Tokenize Input here
 	    tokenize(input);
         //Print out tokens stuff
