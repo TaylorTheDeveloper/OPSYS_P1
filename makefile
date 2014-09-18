@@ -1,11 +1,11 @@
-all: Shell
+all: stallionShell
 
-Shell: shell.o
-	gcc shell.o -o Shell -Wall -pedantic -g
+stallionShell: shell.o
+	gcc shell.o -o stallionShell -Wall -pedantic -g
 
 %.o: %.c
 	gcc -c $< -o $@
 
 clean:
 	rm -f *.o
-	rm -f Shell
+	rm -f stallionShell

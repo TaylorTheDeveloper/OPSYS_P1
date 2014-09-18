@@ -205,10 +205,10 @@ void ioacct(){
         }
         clearGlobals();
         setGlobals(ioArgs,ioArgSize,ioBackground,ioRedirect);
-
+        printf("Got past setglobals!\n");
         // now reprocess the command
         //Clear Buffer, reset glbals, then call 
-        //processCommands();
+        processCommands();
       
         // then read "read_bytes" and "write_bytes" and write values out
         while (fscanf(file, "%s %d", ioInfo, &ioValue) != EOF){
@@ -220,7 +220,7 @@ void ioacct(){
             }
         }
       
-        fclose(file); // close the file
+        //fclose(file); // close the file
 }
 
 /*
@@ -349,7 +349,7 @@ void processCommands(){
             printf("Background Process running");
             waitpid(-1,&status,WNOHANG);
         }
-    else exit(1);
+    else exit(1);  
 }
 
 

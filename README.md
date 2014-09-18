@@ -14,16 +14,6 @@ http://www.maths.cam.ac.uk/undergrad/catam/ccatsl/manual/node50.html
 http://www.cplusplus.com/reference/cstring/strtok/
 
 
-log: 
-9/7/14: 
-Basic Prompt I/O
-9/9/14:
-Exit, part of CD working now. Extended on parser. 
-9/14/14
-Got all of CD working, fixed hostname, couple other things repaired. Code cleaned up.
-9/15/14
-Had issue with commands not null terminating, got that fixed today.
-
 
 Issues: 
 -------------------------------------------------
