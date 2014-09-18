@@ -249,8 +249,8 @@ static int runCommands(){
 /*
 redirectCommands: Currently not working
 */
-void redirectCommands(bool inout){
-
+void redirectCommands(bool inout)
+{
 char *cmd = malloc(80 * sizeof(char));
 char *binPath = malloc(80 * sizeof(char));
 strcpy(binPath, "/bin/");
@@ -333,6 +333,7 @@ void processCommands(){
             printf("Error! Command not found.\n");
             exit(0);
         }
+        exit(0);
     }
     else if(pid > 0 && !background)
     {
